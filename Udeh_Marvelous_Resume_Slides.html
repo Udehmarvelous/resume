@@ -1,463 +1,376 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Udeh Marvelous — Resume</title>
-<style>
-  :root{
-    --bg:#0b0f14;
-    --panel:#10161d;
-    --line:#171f28;
-    --border:#20293380;
-    --text:#cbd5e1;
-    --muted:#75838f;
-    --blue:#6ea8fe;
-    --green:#7ee2a8;
-    --gold:#f0c674;
-    --mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  }
-
-  *{ box-sizing:border-box; }
-  html,body{
-    height:100%; margin:0; background:var(--bg); color:var(--text);
-    font-family:var(--sans); overflow:hidden;
-  }
-  ::selection{ background:var(--blue); color:#08111c; }
-
-  a{ color:var(--blue); }
-  a:focus-visible, button:focus-visible, .tab:focus-visible{
-    outline:2px solid var(--blue); outline-offset:2px; border-radius:2px;
-  }
-
-  /* ---------- App shell ---------- */
-  .app{
-    display:flex; flex-direction:column; height:100vh; width:100vw;
-  }
-
-  .progress{
-    height:3px; background:var(--line); flex:0 0 auto;
-  }
-  .progress-fill{
-    height:100%; width:14.28%; background:linear-gradient(90deg,var(--blue),var(--green));
-    transition: width .45s cubic-bezier(.65,0,.35,1);
-  }
-
-  .titlebar{
-    flex:0 0 auto; height:38px; display:flex; align-items:center; gap:10px;
-    padding:0 14px; background:var(--panel); border-bottom:1px solid var(--border);
-    font-family:var(--mono); font-size:12px; color:var(--muted);
-  }
-  .dots{ display:flex; gap:6px; }
-  .dot{ width:9px; height:9px; border-radius:50%; background:#3a4552; }
-  .dots .d1{ background:#e0685f55; }
-  .dots .d2{ background:#e0c56855; }
-  .dots .d3{ background:#7ee2a855; }
-  .titlebar .path{ color:var(--muted); }
-  .titlebar .path b{ color:var(--text); font-weight:500; }
-
-  .tabbar{
-    flex:0 0 auto; display:flex; overflow-x:auto; background:var(--bg);
-    border-bottom:1px solid var(--border); scrollbar-width:none;
-  }
-  .tabbar::-webkit-scrollbar{ display:none; }
-  .tab{
-    font-family:var(--mono); font-size:12.5px; color:var(--muted);
-    background:transparent; border:none; border-right:1px solid var(--border);
-    padding:10px 16px; cursor:pointer; white-space:nowrap;
-    border-bottom:2px solid transparent; transition:color .15s, border-color .15s;
-  }
-  .tab:hover{ color:var(--text); }
-  .tab.active{ color:var(--text); border-bottom-color:var(--blue); background:var(--panel); }
-
-  .stage{
-    position:relative; flex:1 1 auto; overflow:hidden;
-  }
-  .track{
-    display:flex; height:100%; width:700%;
-    transition:transform .5s cubic-bezier(.65,0,.35,1);
-  }
-  .slide{
-    width:14.2857%; height:100%; display:flex; overflow:hidden;
-  }
-
-  .gutter{
-    flex:0 0 auto; width:46px; padding:22px 0; text-align:right;
-    font-family:var(--mono); font-size:12.5px; line-height:1.9; color:#2e3944;
-    border-right:1px solid var(--border); user-select:none;
-  }
-  .gutter div{ padding-right:12px; }
-
-  .pane{
-    flex:1 1 auto; overflow-y:auto; padding:26px 34px 70px;
-  }
-  .pane-inner{ max-width:640px; margin:0 auto; }
-
-  .lines .line{ line-height:1.9; }
-
-  /* code punctuation helpers */
-  .kw{ color:var(--blue); }
-  .str{ color:var(--green); }
-  .fn{ color:var(--gold); }
-  .cm{ color:var(--muted); }
-  .pn{ color:#4b5a68; }
-  code, .code{ font-family:var(--mono); font-size:14px; }
-
-  /* ---------- intro slide ---------- */
-  .hero .line{ font-family:var(--mono); font-size:14.5px; opacity:0; transform:translateY(6px); }
-  .hero.play .line{ animation:reveal .45s ease forwards; }
-  .hero .line:nth-child(1){ animation-delay:.05s; }
-  .hero .line:nth-child(2){ animation-delay:.15s; }
-  .hero .line:nth-child(3){ animation-delay:.25s; }
-  .hero .line:nth-child(4){ animation-delay:.35s; }
-  .hero .line:nth-child(5){ animation-delay:.45s; }
-  .hero .line:nth-child(6){ animation-delay:.55s; }
-  .hero .line:nth-child(7){ animation-delay:.65s; }
-  .hero .line:nth-child(8){ animation-delay:.75s; }
-  .hero .line:nth-child(9){ animation-delay:.85s; }
-  .hero .line:nth-child(10){ animation-delay:.95s; }
-  @keyframes reveal{ to{ opacity:1; transform:translateY(0); } }
-
-  .hero-name{ font-size:26px; font-weight:600; color:var(--text); font-family:var(--sans); letter-spacing:.2px; }
-  .hero-roles{ color:var(--muted); font-family:var(--sans); font-size:14px; margin-top:2px; }
-  .cursor{ display:inline-block; width:8px; background:var(--green); margin-left:2px;
-    animation:blink 1s steps(1) infinite; }
-  @keyframes blink{ 50%{ opacity:0; } }
-
-  .contact-list{ margin-top:18px; font-family:var(--mono); font-size:13px; }
-  .contact-list .line{ color:var(--muted); }
-  .contact-list a{ color:var(--text); text-decoration:none; border-bottom:1px solid #3a4552; }
-  .contact-list a:hover{ color:var(--green); border-color:var(--green); }
-
-  /* ---------- summary / contact prose slides ---------- */
-  .prose-head{ font-family:var(--mono); font-size:12.5px; color:var(--muted); margin-bottom:14px; }
-  .prose-head b{ color:var(--green); }
-  h2.doc-title{ font-family:var(--sans); font-size:22px; font-weight:600; color:var(--text); margin:0 0 12px; }
-  p.prose{ font-family:var(--sans); font-size:15px; line-height:1.75; color:#b7c2cc; max-width:62ch; }
-
-  /* ---------- skills slide ---------- */
-  .obj{ font-family:var(--mono); font-size:14px; }
-  .obj .row{ margin:14px 0; }
-  .obj .key{ color:var(--blue); }
-  .chips{ display:flex; flex-wrap:wrap; gap:7px; margin:7px 0 0 18px; }
-  .chip{
-    font-family:var(--mono); font-size:12.5px; color:var(--green);
-    border:1px solid #2a4436; background:#7ee2a80d; padding:4px 10px; border-radius:4px;
-  }
-
-  /* ---------- projects slide ---------- */
-  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  .card{
-    border:1px solid var(--border); background:var(--panel); border-radius:6px; padding:14px 16px;
-  }
-  .card .def{ font-family:var(--mono); font-size:13px; }
-  .card .doc{ font-family:var(--sans); font-size:12.5px; color:var(--muted); margin:5px 0 8px; }
-  .card ul{ margin:0; padding-left:16px; font-family:var(--sans); font-size:12.8px; color:#b7c2cc; }
-  .card li{ margin-bottom:3px; }
-
-  /* ---------- experience slide ---------- */
-  .job{ margin-bottom:22px; }
-  .job .def{ font-family:var(--mono); font-size:14px; }
-  .job .doc{ font-family:var(--sans); font-size:13px; color:var(--muted); margin:4px 0 8px; }
-  .job ul{ margin:0; padding-left:18px; font-family:var(--sans); font-size:14px; color:#b7c2cc; line-height:1.65; }
-
-  /* ---------- education (yaml) ---------- */
-  .yaml .row{ font-family:var(--mono); font-size:14.5px; margin:10px 0; }
-  .yaml .key{ color:var(--blue); }
-
-  /* ---------- contact buttons ---------- */
-  .cta-row{ display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
-  .cta{
-    font-family:var(--mono); font-size:13px; color:var(--text); text-decoration:none;
-    border:1px solid #2a3744; padding:9px 14px; border-radius:5px; transition:border-color .15s, color .15s;
-  }
-  .cta:hover{ color:var(--green); border-color:#2a4436; }
-
-  /* ---------- statusbar ---------- */
-  .statusbar{
-    flex:0 0 auto; height:30px; background:var(--blue); color:#07131f;
-    display:flex; align-items:center; justify-content:space-between;
-    font-family:var(--mono); font-size:12px; padding:0 12px;
-  }
-  .statusbar .left, .statusbar .right{ display:flex; align-items:center; gap:14px; }
-  .navbtn{
-    background:transparent; border:none; color:#07131f; font-family:var(--mono);
-    font-size:12.5px; cursor:pointer; padding:2px 4px; font-weight:600;
-  }
-  .navbtn:disabled{ opacity:.35; cursor:default; }
-  .hint{ opacity:.75; }
-
-  @media (max-width:640px){
-    .gutter{ display:none; }
-    .pane{ padding:16px 16px 60px; }
-    .grid{ grid-template-columns:1fr; }
-    .hero-name{ font-size:21px; }
-    .titlebar .path{ display:none; }
-    .statusbar .hint{ display:none; }
-    h2.doc-title{ font-size:19px; }
-    .hero .line{ font-size:12.5px; }
-    .obj, .card .def, .job .def, .yaml .row, .contact-list{ font-size:12.5px; }
-    p.prose{ font-size:14px; }
-  }
-
-  @media (prefers-reduced-motion: reduce){
-    .track{ transition:none; }
-    .progress-fill{ transition:none; }
-    .hero .line{ animation:none; opacity:1; transform:none; }
-    .cursor{ animation:none; }
-  }
-</style>
-</head>
-<body>
-
-<div class="app">
-  <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
-
-  <div class="titlebar">
-    <div class="dots"><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>
-    <div class="path">marvel@lagos <b>~/resume</b></div>
-  </div>
-
-  <div class="tabbar" id="tabbar">
-    <button class="tab active" data-i="0">intro.py</button>
-    <button class="tab" data-i="1">summary.md</button>
-    <button class="tab" data-i="2">skills.json</button>
-    <button class="tab" data-i="3">projects.py</button>
-    <button class="tab" data-i="4">experience.py</button>
-    <button class="tab" data-i="5">education.yml</button>
-    <button class="tab" data-i="6">contact.md</button>
-  </div>
-
-  <div class="stage">
-    <div class="track" id="track">
-
-      <!-- 0 intro.py -->
-      <div class="slide">
-        <div class="gutter" id="g0"></div>
-        <div class="pane"><div class="pane-inner">
-          <div class="lines hero play" id="hero">
-            <div class="line"><span class="cm"># resume — press → or click a tab to explore</span></div>
-            <div class="line"><span class="kw">class</span> <span class="fn">Developer</span>:</div>
-            <div class="line">&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self):</div>
-            <div class="line">&nbsp;&nbsp;&nbsp;&nbsp;self.name = <span class="str">"Udeh Marvelous"</span></div>
-            <div class="line">&nbsp;&nbsp;&nbsp;&nbsp;self.roles = [<span class="str">"Junior Python Developer"</span>, <span class="str">"Software Engineer"</span>,</div>
-            <div class="line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Frontend Developer"</span>]</div>
-            <div class="line">&nbsp;&nbsp;&nbsp;&nbsp;self.location = <span class="str">"Lagos State, Nigeria"</span></div>
-            <div class="line">&nbsp;&nbsp;&nbsp;&nbsp;self.status = <span class="str">"open to junior dev opportunities"</span><span class="cursor">&nbsp;</span></div>
-          </div>
-          <div class="contact-list lines">
-            <div class="line"># <a href="mailto:uchibuike581@gmail.com">uchibuike581@gmail.com</a></div>
-            <div class="line"># <a href="https://github.com/Udehmarvelous" target="_blank" rel="noopener">github.com/Udehmarvelous</a></div>
-            <div class="line"># <a href="https://www.linkedin.com/in/udeh-chibuike-977259375/" target="_blank" rel="noopener">linkedin.com/in/udeh-chibuike</a></div>
-          </div>
-        </div></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Udeh Marvelous — Resume</title>
+  </head>
+  <body>
+    <div class="app">
+      <div class="progress">
+        <div class="progress-fill" id="progressFill"></div>
       </div>
 
-      <!-- 1 summary.md -->
-      <div class="slide">
-        <div class="gutter" id="g1"></div>
-        <div class="pane"><div class="pane-inner">
-          <div class="prose-head"><b>#</b> summary.md — professional summary</div>
-          <h2 class="doc-title">About</h2>
-          <p class="prose">Junior Python Developer and aspiring Software Engineer with hands-on experience building Python applications, web applications, REST APIs, and database-driven systems. Familiar with Python, Flask, SQL, SQLite, JavaScript, HTML, and CSS.</p>
-          <p class="prose">Experienced with Git/GitHub, debugging, and handling files and databases across practical projects — currently strengthening backend development skills while expanding into artificial intelligence.</p>
-        </div></div>
+      <div class="titlebar">
+        <div class="dots">
+          <span class="dot d1"></span><span class="dot d2"></span
+          ><span class="dot d3"></span>
+        </div>
+        <div class="path">marvel@lagos <b>~/resume</b></div>
       </div>
 
-      <!-- 2 skills.json -->
-      <div class="slide">
-        <div class="gutter" id="g2"></div>
-        <div class="pane"><div class="pane-inner">
-          <div class="obj">
-            <div class="line">{</div>
-            <div class="row"><span class="key">"programming"</span>:
-              <div class="chips">
-                <span class="chip">Python</span><span class="chip">JavaScript</span><span class="chip">HTML5</span><span class="chip">CSS3</span>
+      <div class="tabbar" id="tabbar">
+        <button class="tab active" data-i="0">intro.py</button>
+        <button class="tab" data-i="1">summary.md</button>
+        <button class="tab" data-i="2">skills.json</button>
+        <button class="tab" data-i="3">projects.py</button>
+        <button class="tab" data-i="4">experience.py</button>
+        <button class="tab" data-i="5">education.yml</button>
+        <button class="tab" data-i="6">contact.md</button>
+      </div>
+
+      <div class="stage">
+        <div class="track" id="track">
+          <!-- 0 intro.py -->
+          <div class="slide">
+            <div class="gutter" id="g0"></div>
+            <div class="pane">
+              <div class="pane-inner">
+                <div class="lines hero play" id="hero">
+                  <div class="line">
+                    <span class="cm"
+                      ># resume — press → or click a tab to explore</span
+                    >
+                  </div>
+                  <div class="line">
+                    <span class="kw">class</span>
+                    <span class="fn">Developer</span>:
+                  </div>
+                  <div class="line">
+                    &nbsp;&nbsp;<span class="kw">def</span>
+                    <span class="fn">__init__</span>(self):
+                  </div>
+                  <div class="line">
+                    &nbsp;&nbsp;&nbsp;&nbsp;self.name =
+                    <span class="str">"Udeh Marvelous"</span>
+                  </div>
+                  <div class="line">
+                    &nbsp;&nbsp;&nbsp;&nbsp;self.roles = [<span class="str"
+                      >"Junior Python Developer"</span
+                    >, <span class="str">"Software Engineer"</span>,
+                  </div>
+                  <div class="line">
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                      class="str"
+                      >"Frontend Developer"</span
+                    >]
+                  </div>
+                  <div class="line">
+                    &nbsp;&nbsp;&nbsp;&nbsp;self.location =
+                    <span class="str">"Lagos State, Nigeria"</span>
+                  </div>
+                  <div class="line">
+                    &nbsp;&nbsp;&nbsp;&nbsp;self.status =
+                    <span class="str">"open to junior dev opportunities"</span
+                    ><span class="cursor">&nbsp;</span>
+                  </div>
+                </div>
+                <div class="contact-list lines">
+                  <div class="line">
+                    #
+                    <a href="mailto:uchibuike581@gmail.com"
+                      >uchibuike581@gmail.com</a
+                    >
+                  </div>
+                  <div class="line">
+                    #
+                    <a
+                      href="https://github.com/Udehmarvelous"
+                      target="_blank"
+                      rel="noopener"
+                      >github.com/Udehmarvelous</a
+                    >
+                  </div>
+                  <div class="line">
+                    #
+                    <a
+                      href="https://www.linkedin.com/in/udeh-chibuike-977259375/"
+                      target="_blank"
+                      rel="noopener"
+                      >linkedin.com/in/udeh-chibuike</a
+                    >
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="row"><span class="key">"python_dev"</span>:
-              <div class="chips">
-                <span class="chip">Flask</span><span class="chip">REST APIs</span><span class="chip">OOP fundamentals</span>
-                <span class="chip">file &amp; exception handling</span><span class="chip">virtual envs</span>
+          </div>
+
+          <!-- 1 summary.md -->
+          <div class="slide">
+            <div class="gutter" id="g1"></div>
+            <div class="pane">
+              <div class="pane-inner">
+                <div class="prose-head">
+                  <b>#</b> summary.md — professional summary
+                </div>
+                <h2 class="doc-title">About</h2>
+                <p class="prose">
+                  Junior Python Developer and aspiring Software Engineer with
+                  hands-on experience building Python applications, web
+                  applications, REST APIs, and database-driven systems. Familiar
+                  with Python, Flask, SQL, SQLite, JavaScript, HTML, and CSS.
+                </p>
+                <p class="prose">
+                  Experienced with Git/GitHub, debugging, and handling files and
+                  databases across practical projects — currently strengthening
+                  backend development skills while expanding into artificial
+                  intelligence.
+                </p>
               </div>
             </div>
-            <div class="row"><span class="key">"web_dev"</span>:
-              <div class="chips">
-                <span class="chip">responsive design</span><span class="chip">Flask/Jinja</span><span class="chip">API integration</span>
+          </div>
+
+          <!-- 2 skills.json -->
+          <div class="slide">
+            <div class="gutter" id="g2"></div>
+            <div class="pane">
+              <div class="pane-inner">
+                <div class="obj">
+                  <div class="line">{</div>
+                  <div class="row">
+                    <span class="key">"programming"</span>:
+                    <div class="chips">
+                      <span class="chip">Python</span
+                      ><span class="chip">JavaScript</span
+                      ><span class="chip">HTML5</span
+                      ><span class="chip">CSS3</span>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <span class="key">"python_dev"</span>:
+                    <div class="chips">
+                      <span class="chip">Flask</span
+                      ><span class="chip">REST APIs</span
+                      ><span class="chip">OOP fundamentals</span>
+                      <span class="chip">file &amp; exception handling</span
+                      ><span class="chip">virtual envs</span>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <span class="key">"web_dev"</span>:
+                    <div class="chips">
+                      <span class="chip">responsive design</span
+                      ><span class="chip">Flask/Jinja</span
+                      ><span class="chip">API integration</span>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <span class="key">"databases"</span>:
+                    <div class="chips">
+                      <span class="chip">SQLite</span
+                      ><span class="chip">SQL</span>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <span class="key">"tools"</span>:
+                    <div class="chips">
+                      <span class="chip">Git</span
+                      ><span class="chip">GitHub</span
+                      ><span class="chip">VS Code</span
+                      ><span class="chip">Antigravity IDE</span
+                      ><span class="chip">npm</span>
+                    </div>
+                  </div>
+                  <div class="line">}</div>
+                </div>
               </div>
             </div>
-            <div class="row"><span class="key">"databases"</span>:
-              <div class="chips">
-                <span class="chip">SQLite</span><span class="chip">SQL</span>
+          </div>
+
+          <!-- 3 projects.py -->
+          <div class="slide">
+            <div class="gutter" id="g3"></div>
+            <div class="pane">
+              <div class="pane-inner" style="max-width: 720px">
+                <div class="grid">
+                  <div class="card">
+                    <div class="def">
+                      <span class="kw">def</span>
+                      <span class="fn">pulsequant</span>():
+                    </div>
+                    <div class="doc">Python web dashboard + REST API</div>
+                    <ul>
+                      <li>Dashboard backed by a REST API</li>
+                      <li>Backend endpoints &amp; app logic</li>
+                      <li>Structured for local dev &amp; deployment</li>
+                    </ul>
+                  </div>
+                  <div class="card">
+                    <div class="def">
+                      <span class="kw">def</span>
+                      <span class="fn">marvelpeak</span>():
+                    </div>
+                    <div class="doc">Web app — Python + Flask + SQLite</div>
+                    <ul>
+                      <li>Backend routes &amp; app logic</li>
+                      <li>SQLite database functionality</li>
+                      <li>Templates, frontend, deploy prep</li>
+                    </ul>
+                  </div>
+                  <div class="card">
+                    <div class="def">
+                      <span class="kw">def</span>
+                      <span class="fn">student_results</span>():
+                    </div>
+                    <div class="doc">Database-driven results management</div>
+                    <ul>
+                      <li>Teachers upload student results</li>
+                      <li>Lookup by student code</li>
+                      <li>Admin approval &amp; management</li>
+                    </ul>
+                  </div>
+                  <div class="card">
+                    <div class="def">
+                      <span class="kw">def</span>
+                      <span class="fn">todo_cli</span>():
+                    </div>
+                    <div class="doc">Command-line Todo application</div>
+                    <ul>
+                      <li>Add, view, edit, complete tasks</li>
+                      <li>File-based persistent storage</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="row"><span class="key">"tools"</span>:
-              <div class="chips">
-                <span class="chip">Git</span><span class="chip">GitHub</span><span class="chip">VS Code</span><span class="chip">Antigravity IDE</span><span class="chip">npm</span>
+          </div>
+
+          <!-- 4 experience.py -->
+          <div class="slide">
+            <div class="gutter" id="g4"></div>
+            <div class="pane">
+              <div class="pane-inner">
+                <div class="job">
+                  <div class="def">
+                    <span class="kw">def</span>
+                    <span class="fn">junior_developer</span>():
+                  </div>
+                  <div class="doc">
+                    Personal Software Projects — Lagos State, Nigeria
+                  </div>
+                  <ul>
+                    <li>
+                      Built apps with Python, Flask, JavaScript, HTML &amp; CSS
+                    </li>
+                    <li>Developed backend logic and REST API endpoints</li>
+                    <li>
+                      Used SQLite/SQL for storage, Git/GitHub for source control
+                    </li>
+                    <li>
+                      Debugged issues and practiced deployment &amp; environment
+                      setup
+                    </li>
+                  </ul>
+                </div>
+                <div class="job">
+                  <div class="def">
+                    <span class="kw">def</span>
+                    <span class="fn">lcw_intern</span>():
+                  </div>
+                  <div class="doc">LCW Intern — Lagos, Nigeria</div>
+                  <ul>
+                    <li>
+                      Took part in software &amp; digital development activities
+                    </li>
+                    <li>Worked assigned technical and project tasks</li>
+                    <li>
+                      Practiced professional communication &amp; team
+                      collaboration
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
-            <div class="line">}</div>
           </div>
-        </div></div>
-      </div>
 
-      <!-- 3 projects.py -->
-      <div class="slide">
-        <div class="gutter" id="g3"></div>
-        <div class="pane"><div class="pane-inner" style="max-width:720px">
-          <div class="grid">
-            <div class="card">
-              <div class="def"><span class="kw">def</span> <span class="fn">pulsequant</span>():</div>
-              <div class="doc">Python web dashboard + REST API</div>
-              <ul>
-                <li>Dashboard backed by a REST API</li>
-                <li>Backend endpoints &amp; app logic</li>
-                <li>Structured for local dev &amp; deployment</li>
-              </ul>
-            </div>
-            <div class="card">
-              <div class="def"><span class="kw">def</span> <span class="fn">marvelpeak</span>():</div>
-              <div class="doc">Web app — Python + Flask + SQLite</div>
-              <ul>
-                <li>Backend routes &amp; app logic</li>
-                <li>SQLite database functionality</li>
-                <li>Templates, frontend, deploy prep</li>
-              </ul>
-            </div>
-            <div class="card">
-              <div class="def"><span class="kw">def</span> <span class="fn">student_results</span>():</div>
-              <div class="doc">Database-driven results management</div>
-              <ul>
-                <li>Teachers upload student results</li>
-                <li>Lookup by student code</li>
-                <li>Admin approval &amp; management</li>
-              </ul>
-            </div>
-            <div class="card">
-              <div class="def"><span class="kw">def</span> <span class="fn">todo_cli</span>():</div>
-              <div class="doc">Command-line Todo application</div>
-              <ul>
-                <li>Add, view, edit, complete tasks</li>
-                <li>File-based persistent storage</li>
-              </ul>
+          <!-- 5 education.yml -->
+          <div class="slide">
+            <div class="gutter" id="g5"></div>
+            <div class="pane">
+              <div class="pane-inner">
+                <div class="yaml">
+                  <div class="row">
+                    <span class="key">school:</span> Secondary School Education
+                  </div>
+                  <div class="row">
+                    <span class="key">location:</span> Lagos State, Nigeria
+                  </div>
+                  <div class="row">
+                    <span class="key">graduating:</span> 2026
+                  </div>
+                  <div class="row">
+                    <span class="key">focus:</span> Software Engineering /
+                    Computer Science
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div></div>
+
+          <!-- 6 contact.md -->
+          <div class="slide">
+            <div class="gutter" id="g6"></div>
+            <div class="pane">
+              <div class="pane-inner">
+                <div class="prose-head"><b>#</b> contact.md</div>
+                <h2 class="doc-title">Let's build something</h2>
+                <p class="prose">
+                  Open to junior Python / software engineering roles and
+                  freelance web work. Reach out any time.
+                </p>
+                <div class="cta-row">
+                  <a class="cta" href="mailto:uchibuike581@gmail.com"
+                    >✉ Email</a
+                  >
+                  <a
+                    class="cta"
+                    href="https://github.com/Udehmarvelous"
+                    target="_blank"
+                    rel="noopener"
+                    >&lt;/&gt; GitHub</a
+                  >
+                  <a
+                    class="cta"
+                    href="https://www.linkedin.com/in/udeh-chibuike-977259375/"
+                    target="_blank"
+                    rel="noopener"
+                    >in LinkedIn</a
+                  >
+                </div>
+                <p
+                  class="prose"
+                  style="margin-top: 22px; font-size: 13px; color: var(--muted)"
+                >
+                  Languages: English &nbsp;·&nbsp; References available on
+                  request
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- 4 experience.py -->
-      <div class="slide">
-        <div class="gutter" id="g4"></div>
-        <div class="pane"><div class="pane-inner">
-          <div class="job">
-            <div class="def"><span class="kw">def</span> <span class="fn">junior_developer</span>():</div>
-            <div class="doc">Personal Software Projects — Lagos State, Nigeria</div>
-            <ul>
-              <li>Built apps with Python, Flask, JavaScript, HTML &amp; CSS</li>
-              <li>Developed backend logic and REST API endpoints</li>
-              <li>Used SQLite/SQL for storage, Git/GitHub for source control</li>
-              <li>Debugged issues and practiced deployment &amp; environment setup</li>
-            </ul>
-          </div>
-          <div class="job">
-            <div class="def"><span class="kw">def</span> <span class="fn">lcw_intern</span>():</div>
-            <div class="doc">LCW Intern — Lagos, Nigeria</div>
-            <ul>
-              <li>Took part in software &amp; digital development activities</li>
-              <li>Worked assigned technical and project tasks</li>
-              <li>Practiced professional communication &amp; team collaboration</li>
-            </ul>
-          </div>
-        </div></div>
+      <div class="statusbar">
+        <div class="left">
+          <button class="navbtn" id="prevBtn">‹ prev</button>
+          <span id="posLabel">slide 1 / 7</span>
+          <button class="navbtn" id="nextBtn">next ›</button>
+        </div>
+        <div class="right hint">← → to navigate · click a tab to jump</div>
       </div>
-
-      <!-- 5 education.yml -->
-      <div class="slide">
-        <div class="gutter" id="g5"></div>
-        <div class="pane"><div class="pane-inner">
-          <div class="yaml">
-            <div class="row"><span class="key">school:</span> Secondary School Education</div>
-            <div class="row"><span class="key">location:</span> Lagos State, Nigeria</div>
-            <div class="row"><span class="key">graduating:</span> 2026</div>
-            <div class="row"><span class="key">focus:</span> Software Engineering / Computer Science</div>
-          </div>
-        </div></div>
-      </div>
-
-      <!-- 6 contact.md -->
-      <div class="slide">
-        <div class="gutter" id="g6"></div>
-        <div class="pane"><div class="pane-inner">
-          <div class="prose-head"><b>#</b> contact.md</div>
-          <h2 class="doc-title">Let's build something</h2>
-          <p class="prose">Open to junior Python / software engineering roles and freelance web work. Reach out any time.</p>
-          <div class="cta-row">
-            <a class="cta" href="mailto:uchibuike581@gmail.com">✉ Email</a>
-            <a class="cta" href="https://github.com/Udehmarvelous" target="_blank" rel="noopener">&lt;/&gt; GitHub</a>
-            <a class="cta" href="https://www.linkedin.com/in/udeh-chibuike-977259375/" target="_blank" rel="noopener">in LinkedIn</a>
-          </div>
-          <p class="prose" style="margin-top:22px; font-size:13px; color:var(--muted)">Languages: English &nbsp;·&nbsp; References available on request</p>
-        </div></div>
-      </div>
-
     </div>
-  </div>
 
-  <div class="statusbar">
-    <div class="left">
-      <button class="navbtn" id="prevBtn">‹ prev</button>
-      <span id="posLabel">slide 1 / 7</span>
-      <button class="navbtn" id="nextBtn">next ›</button>
-    </div>
-    <div class="right hint">← → to navigate · click a tab to jump</div>
-  </div>
-</div>
-
-<script>
-(function(){
-  var total = 7;
-  var idx = 0;
-  var track = document.getElementById('track');
-  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
-  var fill = document.getElementById('progressFill');
-  var pos = document.getElementById('posLabel');
-  var prevBtn = document.getElementById('prevBtn');
-  var nextBtn = document.getElementById('nextBtn');
-
-  function render(){
-    track.style.transform = 'translateX(-' + (idx * (100/total)) + '%)';
-    fill.style.width = (((idx+1)/total)*100) + '%';
-    pos.textContent = 'slide ' + (idx+1) + ' / ' + total;
-    tabs.forEach(function(t,i){ t.classList.toggle('active', i===idx); });
-    prevBtn.disabled = idx===0;
-    nextBtn.disabled = idx===total-1;
-  }
-  function go(i){
-    idx = Math.max(0, Math.min(total-1, i));
-    render();
-  }
-
-  tabs.forEach(function(t){ t.addEventListener('click', function(){ go(parseInt(t.dataset.i,10)); }); });
-  prevBtn.addEventListener('click', function(){ go(idx-1); });
-  nextBtn.addEventListener('click', function(){ go(idx+1); });
-  document.addEventListener('keydown', function(e){
-    if(e.key==='ArrowRight' || e.key===' '){ go(idx+1); e.preventDefault(); }
-    if(e.key==='ArrowLeft'){ go(idx-1); e.preventDefault(); }
-  });
-
-  // populate line-number gutters (approximate visual line counts per slide)
-  var gutterCounts = [11, 6, 7, 4, 7, 4, 5];
-  gutterCounts.forEach(function(lines, i){
-    var g = document.getElementById('g'+i);
-    var html = '';
-    for(var n=1; n<=lines; n++){ html += '<div>'+n+'</div>'; }
-    g.innerHTML = html;
-  });
-
-  render();
-})();
-</script>
-
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>
